@@ -9,6 +9,7 @@
         "<!@(node -p \"require('node-addon-api').include\")",
         "portaudio/include",
       ],
+      "defines": ["NAPI_CPP_EXCEPTIONS"],
       "conditions" : [
         [
           'OS=="mac"', {
