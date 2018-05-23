@@ -1,7 +1,7 @@
 #include "napi.h"
 
-#include "getDevices.h"
-#include "output.h"
+#include "./getDevices.h"
+#include "./output.h"
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
