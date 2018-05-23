@@ -22,6 +22,7 @@ function sine(output, frameSize, channelCount) {
 
 portaudio.output.configure({
   sampleRate: sampleRate,
+  // deviceId: 3,
   channelCount: 1,
   process: (output, framesPerBuffer, channelCount) => {
     sine(output, framesPerBuffer, channelCount);

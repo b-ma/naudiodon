@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sstream>
 #include "portaudio.h"
 
 namespace bma {
@@ -21,21 +20,21 @@ class AudioOptions {
     int sampleFormat;
     int framesPerBuffer;
 
-    std::string toString(std::string type) const  {
-      std::stringstream ss;
+    void log(std::string type) const  {
 
-      ss << "-----------------------------" << std::endl;
-      ss << type << " options: " << std::endl;
-      if (deviceId == paNoDevice)
-        ss << "- device: default" << std::endl;
+      std::cout << "---------------------------------------------" << std::endl;
+      if (deviceId == Pa_GetDefaultOutputDevice())
+        std::cout << "| Output (default): " << Pa_GetDeviceInfo(deviceId)->name << std::endl;
       else
-        ss << "- device: " << deviceId << std::endl;
-      ss << "- sampleRate: " << sampleRate << std::endl;
-      ss << "- channelCount: " << channelCount << std::endl;
-      ss << "- framesPerBuffer: " << framesPerBuffer << std::endl;
-      ss << "-----------------------------" << std::endl;
+        std::cout << "| Output: " << Pa_GetDeviceInfo(deviceId)->name << std::endl;
+      std::cout << "---------------------------------------------" << std::endl;
+      std::cout << "| - deviceId: " << deviceId << std::endl;
+      std::cout << "| - sampleRate: " << sampleRate << std::endl;
+      std::cout << "| - channelCount: " << channelCount << std::endl;
+      std::cout << "| - framesPerBuffer: " << framesPerBuffer << std::endl;
+      std::cout << "---------------------------------------------" << std::endl;
 
-      return ss.str();
+      // return ss.str();
     }
 
   private:

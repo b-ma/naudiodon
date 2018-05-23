@@ -42,10 +42,8 @@ void initPaOutputStream(Napi::Env env, AudioOptions audioOptions, PaStreamCallba
     Napi::TypeError::New(env, err.c_str()).ThrowAsJavaScriptException();
   }
 
-  std::cout << audioOptions.toString("output").c_str() << std::endl;
-
   PaStreamParameters outParams;
-  // memset(&outParams, 0, sizeof(PaStreamParameters));
+  memset(&outParams, 0, sizeof(PaStreamParameters));
 
   int deviceId = audioOptions.deviceId;
 
@@ -59,7 +57,12 @@ void initPaOutputStream(Napi::Env env, AudioOptions audioOptions, PaStreamCallba
     Napi::TypeError::New(env, err.c_str()).ThrowAsJavaScriptException();
   }
 
-  printf("Output device name is %s\n", Pa_GetDeviceInfo(outParams.device)->name);
+  // update options according to output params and log
+  audioOptions.deviceId = (int) outParams.device;
+  audioOptions.log("output");
+
+  // std::cout <<  << std::endl;
+  // printf("Output device name is %s\n", Pa_GetDeviceInfo(outParams.device)->name);
 
   outParams.channelCount = audioOptions.channelCount;
 
@@ -182,6 +185,8 @@ int paOutputInitialized = 0;
  */
 Napi::Value Configure(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
+
+  std::cout << "paNoDevice: " << paNoDevice << std::endl;
 
   std::cout << "output::configure()\t" << pthread_self() << std::endl;
 
