@@ -2,7 +2,7 @@
 
 > Node.js wrapper around [PortAudio](http://portaudio.com/). 
 
-This library is a (messy) fork of [naudiodon](/Streampunk/naudiodon) (itself a fork of [node-portaudio](/joeferner/node-portaudio)), with the following changes:
+This library is a (lot more messy) fork of [naudiodon](/Streampunk/naudiodon) (itself a fork of [node-portaudio](/joeferner/node-portaudio)), with the following changes:
 
 - Changing the stream model to a pull model with double buffering, this change intends to provide a more responsive environment and a better clock stability for real-time usages;
 - Updating from [Nan](/nodejs/nan) to [n-api c++](https://nodejs.org/api/n-api.html) API.
@@ -45,12 +45,10 @@ portaudio.output.configure({
     sine(output, framesPerBuffer, channelCount);
   }
 });
-
+// start audio rendering
 portaudio.output.start();
-
+// stop audio rendering
 setTimeout(() => portaudio.output.stop(), 3000);
-
-
 ```
 
 ## @todo
