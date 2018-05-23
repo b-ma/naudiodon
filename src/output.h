@@ -31,7 +31,10 @@ data_t asyncOuputData;
 // PA WRAPPER
 // ----------------------------------------------------------------------
 
-uint32_t outputBufferCounter = 0; // flag for double buffering
+uint32_t outputCounter = 0; // flag for double buffering
+uint32_t outputCounterReader = 0; // flag for double buffering
+uint32_t outputCounterWriter = 0; // flag for double buffering
+// uint32_t outputBufferCounter = 0; // flag for double buffering
 
 void initPaOutputStream(Napi::Env env, AudioOptions audioOptions, PaStreamCallback *cb) {
   PaError errCode = Pa_Initialize();
@@ -130,45 +133,53 @@ int paOutputCallback(
 ) {
   // @note - should lock things
 
-  uint32_t requiredBufferIndex = outputBufferCounter;
-  asyncHandle.data = (void *) &requiredBufferIndex;
+  outputCounterWriter = outputCounter;
+  outputCounterReader = (outputCounter + 1) & 1;
+  // std::cout << "writer " << outputCounterWriter << std::endl;
+  // std::cout << "reader " << outputCounterReader << std::endl;
 
   uv_async_send(&asyncHandle); // return immediately
 
   float* dest = (float*) paOutputBuffer;
   int length = (int) frameCount;
 
-  uint32_t copyBufferIndex = (outputBufferCounter + 1) & 1;
-  std::shared_ptr<std::vector<float>> src = asyncOuputData.buffers[copyBufferIndex];
+  // uint32_t copyBufferIndex = (outputBufferCounter + 1) & 1;
+  std::shared_ptr<std::vector<float>> src = asyncOuputData.buffers[outputCounterReader];
 
   // populate output
   for (int i = 0; i < length; i++)
     dest[i] = (float) src->at(i);
 
   // update counter for next call
-  outputBufferCounter = (outputBufferCounter + 1) & 1;
+  outputCounter = outputCounterReader;
 
-  // return ++counter < 20 ? paContinue : paComplete; // context->fillBuffer(output, frameCount) ? paContinue : paComplete;
   return paContinue;
 }
 
 void pullOutputCallback(uv_async_t* handle) {
   std::shared_ptr<Napi::Env> envPointer = asyncOuputData.env;
+  std::shared_ptr<AudioOptions> options = asyncOuputData.options;
+  std::shared_ptr<std::vector<float>> buffer = asyncOuputData.buffers[outputCounterWriter];
+  // get back a valid JS scope
   Napi::Env env = *envPointer.get();
   Napi::HandleScope scope(env);
   napi_value global = env.Global();
 
-  std::shared_ptr<AudioOptions> options = asyncOuputData.options;
-
-  uint32_t requiredBufferIndex = *((uint32_t*) handle->data);
-  std::shared_ptr<std::vector<float>> buffer = asyncOuputData.buffers[requiredBufferIndex];
+  // std::cout << "v8Callback 1.1 " << requiredBufferIndex << std::endl;
+  // std::cout << "v8Callback 1.2 " << std::endl;
   float* data = buffer->data();
+  // std::cout << "v8Callback 1.3 " << std::endl;
   int size = buffer->size();
 
+  // std::cout << "v8Callback 2" << std::endl;
+
+  // create JS handles for the callback
   Napi::ArrayBuffer arrayBuffer = Napi::ArrayBuffer::New(env, data, size * sizeof(float));
   Napi::Float32Array output = Napi::Float32Array::New(env, size, arrayBuffer, 0);
   Napi::Number framesPerBuffer = Napi::Number::New(env, options->framesPerBuffer);
   Napi::Number numChannels = Napi::Number::New(env, options->channelCount);
+
+  // std::cout << "v8Callback 3" << std::endl;
 
   persistentOutputCallback.MakeCallback(global, { output, framesPerBuffer, numChannels });
 }
@@ -218,11 +229,6 @@ Napi::Value Configure(const Napi::CallbackInfo& info) {
   Napi::Function processFunction = processValue.As<Napi::Function>();
   persistentOutputCallback = Napi::Persistent(processFunction);
   asyncOuputData.env = std::make_shared<Napi::Env>(env);
-
-  // @note - need some test
-  #ifdef __arm__
-  options.framesPerBuffer = 256;
-  #endif
 
   // allocate buffers for double buffering
   const int bufferSize = options.framesPerBuffer * options.channelCount;
