@@ -10,6 +10,8 @@
         "portaudio/include",
       ],
       "defines": ["NAPI_CPP_EXCEPTIONS"],
+      "cflags!": ["-fno-exceptions"],
+      "cflags_cc!": ["-fno-exceptions"],
       "conditions" : [
         [
           'OS=="mac"', {
@@ -19,7 +21,7 @@
               'OTHER_CPLUSPLUSFLAGS': [
                 '-std=c++11',
                 '-stdlib=libc++',
-                '-fexceptions'
+                '-fexceptions',
               ],
               'OTHER_LDFLAGS': [
                 "-Wl,-rpath,<@(module_root_dir)/build/Release"
