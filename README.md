@@ -31,10 +31,7 @@ let phase = 0;
 function sine(output, frameSize, channelCount) {
   for (let i = 0; i < frameSize; i++) {
     output[i] = Math.sin(phase * Math.PI * 2);
-    phase += frequency / sampleRate;
-
-    if (phase >= 1)
-      phase -= 1;
+    phase = (phase + frequency / sampleRate) % 1;
   }
 }
 
