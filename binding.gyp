@@ -1,15 +1,13 @@
 {
   "targets": [
     {
-      "target_name": "naudiodon",
+      "target_name": "node-portaudio",
       "sources": [
-        "src/naudiodon.cc",
-        "src/GetDevices.cc",
-      	"src/AudioIn.cc",
-      	"src/AudioOut.cc"
+        "src/node-portaudio.cc",
       ],
       "include_dirs": [
-        "<!(node -e \"require('nan')\")", "portaudio/include"
+        "<!@(node -p \"require('node-addon-api').include\")",
+        "portaudio/include",
       ],
       "conditions" : [
         [
@@ -72,7 +70,7 @@
               ['target_arch=="arm"', {
                 "link_settings": {
                   "libraries": [
-                    "<@(module_root_dir)/build/Release/libportaudio.so.2" 
+                    "<@(module_root_dir)/build/Release/libportaudio.so.2"
                   ],
                   "ldflags": [
                     "-L<@(module_root_dir)/build/Release",

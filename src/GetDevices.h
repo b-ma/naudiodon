@@ -1,25 +1,48 @@
-/* Copyright 2017 Streampunk Media Ltd.
+#pragma once
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+#include "napi.h"
+#include "portaudio.h"
 
-    http://www.apache.org/licenses/LICENSE-2.0
+namespace bma {
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
+Napi::Array GetDevices(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
 
-#ifndef GETDEVICES_H
-#define GETDEVICES_H
+  uint32_t numDevices;
 
-namespace streampunk {
+  PaError errCode = Pa_Initialize();
 
-NAN_METHOD(GetDevices);
+  if (errCode != paNoError) {
+    std::string err = std::string("Could not initialize PortAudio: ") + Pa_GetErrorText(errCode);
+    Napi::TypeError::New(env, err.c_str()).ThrowAsJavaScriptException();
+  }
 
-} // namespace streampunk
+  numDevices = Pa_GetDeviceCount();
+  Napi::Array result = Napi::Array::New(env, numDevices);
 
-#endif
+  for (uint32_t i = 0; i < numDevices; ++i) {
+    const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+
+    Napi::Object info = Napi::Object::New(env);
+
+    info.Set("id", Napi::Number::New(env, i));
+    info.Set("name", Napi::String::New(env, deviceInfo->name));
+    info.Set("maxInputChannels", Napi::Number::New(env, deviceInfo->maxInputChannels));
+    info.Set("maxOutputChannels", Napi::Number::New(env, deviceInfo->maxOutputChannels));
+    info.Set("defaultSampleRate", Napi::Number::New(env, deviceInfo->defaultSampleRate));
+    info.Set("defaultLowInputLatency", Napi::Number::New(env, deviceInfo->defaultLowInputLatency));
+    info.Set("defaultLowOutputLatency", Napi::Number::New(env, deviceInfo->defaultLowOutputLatency));
+    info.Set("defaultHighInputLatency", Napi::Number::New(env, deviceInfo->defaultHighInputLatency));
+    info.Set("defaultHighOutputLatency", Napi::Number::New(env, deviceInfo->defaultHighOutputLatency));
+    info.Set("hostAPIName", Napi::String::New(env, Pa_GetHostApiInfo(deviceInfo->hostApi)->name));
+
+    result.Set(i, info);
+  }
+
+  Pa_Terminate();
+
+  return result;
+}
+
+} // namespace
+
