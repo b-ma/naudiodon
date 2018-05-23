@@ -11,14 +11,16 @@ _Unless you really need this features (aka most of the time) please use [naudiod
 
 ## Installation
 
+**warning**: not on `npm` yet, install from github: 
+
 ```
-npm install [--save] @b-ma/node-portaudio
+npm install [--save] b-ma/node-portaudio
 ```
 
 ## Example
 
 ```js
-const portaudio = require('@bma/node-portaudio');
+const portaudio = require('node-portaudio');
 
 // retrieve the list of devices
 console.log(portaudio.getDevices());
